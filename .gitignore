@@ -130,3 +130,18 @@ dmypy.json
 
 # Vim
 *.swp
+
+# wandb
+wandb/
+
+# logs
+lightning_logs/
+
+# Notebook
+test.ipynb
+
+#data
+JaQuAD_train.csv
+JaQuAD_valid.csv
+#model
+JaQuad/

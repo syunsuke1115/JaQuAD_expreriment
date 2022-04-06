@@ -141,7 +141,9 @@ lightning_logs/
 test.ipynb
 
 #data
+data/
 JaQuAD_train.csv
 JaQuAD_valid.csv
 #model
 JaQuad/
+distilbert-base-japanese-finetuned-squad/

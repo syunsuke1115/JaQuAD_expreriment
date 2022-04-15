@@ -18,8 +18,8 @@ validationスコアは、epoch数を増やしてもほとんど向上が見ら�
 
 
 ## モデルを変えた実験
-JaQuADデータセットを使って、４つのモデルをFine-tuningし精度の比較を行った。今回使用したモデルは東北大のBERT、Rinna社のRoBERTA、Cinammon社のELECTRA、BandaiNamco社のDistillBERTの四つである。
-この実験では、BERTが最も精度が高かった。また、ELECTRAは他のモデルに比べ、実行時間が1/3ほどと高速であった。DistilBERTはpredictの際に異常にメモリを使ってしまいCVが測定できなかった。Lossも他の３つに比べて著しく高かった。（他が0.8~1.5程度なのに対し、2.4程度）。原因は不明
+JaQuADデータセットを使って４つのモデルをFine-tuningし精度の比較を行った。今回使用したモデルは東北大のBERT、Rinna社のRoBERTA、Cinammon社のELECTRA、BandaiNamco社のDistillBERTの四つである。
+この実験ではBERTが最も高精度であった。また、ELECTRAは他のモデルに比べ実行時間が1/3ほどと高速であった。DistilBERTはpredictの際に異常にメモリを使ってしまいCVが測定できなかった。Lossも他の３つに比べて著しく高かった。（他が0.8~1.5程度なのに対し、2.4程度）。原因は不明
 <img width="706" alt="スクリーンショット 2022-04-15 13 41 53" src="https://user-images.githubusercontent.com/81937075/163519852-59147008-337d-4cfb-9d7c-e34b47356f52.png">
 
 

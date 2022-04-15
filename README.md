@@ -1,114 +1,105 @@
-# JaQuAD: Japanese Question Answering Dataset
+# JaQuAD（Japanese Question Answering Dataset）の精度比較実験
 
-## Overview
+## 概要・背景
+日本語版QAデータセットJaQuADについて実験を行った。
+JaQuADは2022年1月に[この論文](https://arxiv.org/abs/2202.01764)で発表された日本語版のQAデータセットである。題材の文章とそれに対する質問、その回答がセットになっている。データセットはwikiperiaの記事799本から作成されており、39696組のQAのペアからなる。英語版のSQuADはこれまで色々なところで成果を上げており、韓国語版やフランス語版なども存在するが、日本語版は小規模なものしかなかった。今後様々な日本語QAタスクへの応用が期待される。
 
-Japanese Question Answering Dataset (JaQuAD), released in 2022, is a
-human-annotated dataset created for Japanese Machine Reading Comprehension.
-JaQuAD is developed to provide a SQuAD-like QA dataset in Japanese.
-JaQuAD contains 39,696 question-answer pairs.
-Questions and answers are manually curated by human annotators.
-Contexts are collected from Japanese Wikipedia articles.
+## 公式ベースラインモデルを用いた実験
+公式のベースラインモデルを利用して実験を行った。特に明示されていない場合は3epochで実験を行なっている。
+評価値はF1を使用した。
 
-For more information on how the dataset was created, refer to our paper,
-[JaQuAD: Japanese Question Answering Dataset for Machine Reading
-Comprehension](https://arxiv.org/abs/2202.01764).
+### Lr(learning rate)
+lrを変化させながら学習を行なった。lrを上げていくと急に学習がうまくいかなくなるポイントが存在した。
+<img width="714" alt="スクリーンショット 2022-04-15 13 37 02" src="https://user-images.githubusercontent.com/81937075/163519818-eb3d3033-38dc-48d9-a0da-ceeb5b164eaf.png">
 
-## Data
-
-JaQuAD consists of three sets: `train`, `validation`, and `test`. They were
-created from disjoint sets of Wikipedia articles. The following table shows
-statistics for each set:
-
-Set | Number of Articles | Number of Contexts | Number of Questions
---------------|--------------------|--------------------|--------------------
-Train | 691 | 9713 | 31748
-Validation | 101 | 1431 | 3939
-Test | 109 | 1479 | 4009
-
-You can also download our dataset [here](
-https://huggingface.co/datasets/SkelterLabsInc/JaQuAD).
-(The `test` set is not publicly released yet.)
-
-```python
-from datasets import load_dataset
-jaquad_data = load_dataset('SkelterLabsInc/JaQuAD')
-```
+### 過学習
+validationスコアは、epoch数を増やしてもほとんど向上が見られなかった。5epochほど回すとかなり過学習が進んでいることがわかる。
+<img width="352" alt="スクリーンショット 2022-04-15 13 39 41" src="https://user-images.githubusercontent.com/81937075/163519832-14aad36b-3136-4c52-9232-f6b3b15fc2d5.png">
 
 
-## Baseline
+## モデルを変えた実験
+JaQuADデータセットを使って、４つのモデルをFine-tuningし精度の比較を行った。今回使用したモデルは東北大のBERT、Rinna社のRoBERTA、Cinammon社のELECTRA、BandaiNamco社のDistillBERTの四つである。
+この実験では、BERTが最も精度が高かった。また、ELECTRAは他のモデルに比べ、実行時間が1/3ほどと高速であった。DistilBERTはpredictの際に異常にメモリを使ってしまいCVが測定できなかった。Lossも他の３つに比べて著しく高かった。（他が0.8~1.5程度なのに対し、2.4程度）。原因は不明
+<img width="706" alt="スクリーンショット 2022-04-15 13 41 53" src="https://user-images.githubusercontent.com/81937075/163519852-59147008-337d-4cfb-9d7c-e34b47356f52.png">
 
-We also provide a baseline model for JaQuAD for comparison. We created this
-model by fine-tuning a publicly available Japanese BERT model on JaQuAD. You can
-see the performance of the baseline model in the table below.
 
-For more information on the model's creation, refer to
-[JaQuAD.ipynb](JaQuAD.ipynb).
+## 定性実験
+3つの文章にそれぞれ5つの質問を与え実験を行った。BERTとELECTRAでそれぞれ比較を行なっている。
 
-Pre-trained LM | Dev F1 | Dev EM | Test F1 | Test EM
----------------|--------|--------|---------|---------
-BERT-Japanese | 77.35 | 61.01 | 78.92 | 63.38
+### 題材1　サイバーエージェント社のインタビュー記事
 
-You can download the baseline model [here](
-https://huggingface.co/SkelterLabsInc/bert-base-japanese-jaquad).
+[https://www.cyberagent.co.jp/corporate/message/list/detail/id=20248](https://www.co-media.jp/article/2901)
 
-## Usage
+題材文
+> インターネットを軸に様々な事業を展開しております。 まず、サイバーエージェントは1998年に創業し、今年16周年目という節目にあたります。元々はBtoBといわれる対企業向けのビジネスとして、インターネットの広告代理事業から始まっている会社です。創業当初から行っており今も主力事業となっているうちの一つがインターネットの広告代理店の事業です。世の中には様々な広告の媒体があると思います。テレビCMもあれば、屋外広告、電車、雑誌、新聞、ラジオなどがある中で、私たちはインターネット専業で広告代理事業を行っています。総合広告代理店はTVを中心に全て扱うと思うのですが、私たちはその中でインターネットをメインとした専業でやっています。ここがBtoBといわれる対企業向けのビジネスとしての事業内容です
+> 
 
-```python
-from transformers import AutoModelForQuestionAnswering, AutoTokenizer
+質問1-1：サイバーエージェントはいつ創業したの？
+- 回答BERT：1998 年
+- 回答ELECTRA：1998 年
 
-question = 'アレクサンダー・グラハム・ベルは、どこで生まれたの?'
-context = 'アレクサンダー・グラハム・ベルは、スコットランド生まれの科学者、発明家、工学者である。世界初の>実用的電話の発明で知られている。'
+質問1-2：世の中にはどんな広告媒体があるの？
+- 回答BERT：様々 な 広告 の 媒体 が ある と 思い ます 。 テレビ CM も あれ ば 、 屋外 広告
+回答ELECTRA：広告 代理 店
 
-model = AutoModelForQuestionAnswering.from_pretrained(
-    'SkelterLabsInc/bert-base-japanese-jaquad')
-tokenizer = AutoTokenizer.from_pretrained(
-    'SkelterLabsInc/bert-base-japanese-jaquad')
+質問1-3：どうやって広告代理事業を行なっているの？
+- 回答BERT：インターネット 専業
+- 回答ELECTRA：回答なし
 
-inputs = tokenizer(
-    question, context, add_special_tokens=True, return_tensors="pt")
-input_ids = inputs["input_ids"].tolist()[0]
-outputs = model(**inputs)
-answer_start_scores = outputs.start_logits
-answer_end_scores = outputs.end_logits
+質問1-4：何を軸に事業を展開しているの？
+- 回答BERT：[SEP] インターネット
+- 回答ELECTRA：回答なし
 
-# Get the most likely start of the answer with the argmax of the score.
-answer_start = torch.argmax(answer_start_scores)
-# Get the most likely end of the answer with the argmax of the score.
-# 1 is added to `answer_end` because the index of the score is inclusive.
-answer_end = torch.argmax(answer_end_scores) + 1
+質問1-5：サイバーエージェントは何から始まっている会社なの？
+- 回答BERT：回答なし
+- 回答ELECTRA：広告 代理
 
-answer = tokenizer.convert_tokens_to_string(
-    tokenizer.convert_ids_to_tokens(input_ids[answer_start:answer_end]))
-# answer = 'スコットランド'
-```
+### 題材2　高橋是清のwikiperia
+題材文
+> 高橋 是清（たかはし これきよ、1854年9月19日〈嘉永7年閏7月27日〉 - 1936年〈昭和11年〉2月26日）は、明治から昭和にかけての日本の財政家、日銀総裁、政治家[1]。立憲政友会第4代総裁。第20代内閣総理大臣（在任: 1921年〈大正10年〉11月13日 - 1922年〈大正11年〉6月12日）。栄典は正二位大勲位子爵。幼名は和喜次（わきじ）。近代日本を代表する財政家として知られ、総理大臣としてよりも大蔵大臣としての評価の方が高い。愛称は「**ダルマさん**」。
+> 
 
-## Limitations
+質問1-1：高橋 是清の職業は？
+- 回答BERT：財政 家
+- 回答ELECTRA：高橋 是清
 
-This dataset is not yet complete.
-The social biases of this dataset have not yet been investigated.
+質問1-2：高橋 是清は立憲政友会の第何代総裁？
+- 回答BERT：第 4
+- 回答ELECTRA：第 4
 
-If you find any errors in JaQuAD, please contact <jaquad@skelterlabs.com>.
+質問1-3：高橋 是清はなんと知られているの？
+- 回答BERT：回答なし
+- 回答ELECTRA：[SEP] 高橋 是清
 
-## Reference
+質問1-4：高橋 是清の愛称は？
+- 回答BERT：「 ダルマ さん
+- 回答ELECTRA：「 ダルマ さん
 
-If you use our dataset or code, please cite our paper:
+質問1-5：高橋 是清の幼名は？
+- 回答BERT：和 喜次
+- 回答ELECTRA：和 喜次
 
-```bibtex
-@misc{so2022jaquad,
-      title={{JaQuAD: Japanese Question Answering Dataset for Machine Reading Comprehension}},
-      author={ByungHoon So and Kyuhong Byun and Kyungwon Kang and Seongjin Cho},
-      year={2022},
-      eprint={2202.01764},
-      archivePrefix={arXiv},
-      primaryClass={cs.CL}
-}
-```
+題材3　サイバーエージェント社AI事業部の説明　　[https://hrmos.co/pages/cyberagent-group/jobs/0000071](https://hrmos.co/pages/cyberagent-group/jobs/0000071)
+題材文
+> 継続して価値を提供するためにチームとしての力を最大化して開発しようという組織風土があります。最新の情報キャッチアップできるようGoogle I/OやAWS re:Invent、国際学会などの海外で開催されるカンファレンスへの参加制度、勉強会やゼミ制度などがあり、切磋琢磨できる環境があります。最近ではサーバサイドエンジニアも対象とした機械学習ハンズオンやKaggle形式のデータサイエンスコンペティションなども実施されています。日々最新技術やマーケット情報が飛び交う環境下で技術感度の高いエンジニアと一緒にこの大きな時代の転換期にこそできる挑戦をしませんか？
+> 
 
-## LICENSE
+質問3-1：どんな環境下で挑戦できるの？
+- 回答BERT：環境 下
+- 回答ELECTRA：回答なし
 
-The JaQuAD dataset is licensed under the [CC BY-SA 3.0]
-(https://creativecommons.org/licenses/by-sa/3.0/) license.
+質問3-2：最近はサーバサイドエンジニアも対象に何が行われているの？
+- 回答BERT：機械 学習 ハンズオン
+- 回答ELECTRA：機械 学習 ハンズオン
 
-## Have Questions?
+質問3-3：最近はサーバサイドエンジニアも対象に何が実施されているの？
+- 回答BERT：機械 学習 ハンズオン
+- 回答ELECTRA：機械 学習 ハンズオン 
 
-Ask us at <jaquad@skelterlabs.com>.
+質問3-4：どんな組織風土があるの？
+- 回答BERT：回答なし
+- 回答ELECTRA：回答なし
+
+質問3-5：データサイエンスコンペティションはどんな形式？
+- 回答BERT：Kaggle 形式
+- 回答ELECTRA：Kaggle 形式

@@ -147,3 +147,12 @@ JaQuAD_valid.csv
 #model
 JaQuad/
 distilbert-base-japanese-finetuned-squad/
+lightning_logs/
+pretrained_model/
+model/electra-small-japanese-generator_same_prepare
+model/electra-small-japanese-discriminator_test
+model/checkpoint-25173_same_prepare
+model/checkpoint-16781_same_prepare
+model/distilbert-base-japanese_same_prepare
+model/bert-base-japanese-jaquad_test
+pretrained_model/pytorch_model.bin
